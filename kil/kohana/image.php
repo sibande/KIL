@@ -1,4 +1,4 @@
-<?php defined('SYSPATH') or die('No direct script access.');
+<?php
 /**
  * Image manipulation support. Allows images to be resized, cropped, etc.
  *
@@ -8,7 +8,7 @@
  * @copyright  (c) 2008-2009 Kohana Team
  * @license    http://kohanaphp.com/license.html
  */
-abstract class Kohana_Image {
+abstract class KIL_Kohana_Image {
 
 	// Resizing constraints
 	const NONE    = 0x01;
@@ -32,23 +32,23 @@ abstract class Kohana_Image {
 	/**
 	 * Loads an image and prepares it for manipulation.
 	 *
-	 *     $image = Image::factory('upload/test.jpg');
+	 *     $image = KIL_Image::factory('upload/test.jpg');
 	 *
 	 * @param   string   image file path
 	 * @param   string   driver type: GD, ImageMagick, etc
 	 * @return  Image
-	 * @uses    Image::$default_driver
+	 * @uses    KIL_Image::$default_driver
 	 */
 	public static function factory($file, $driver = NULL)
 	{
 		if ($driver === NULL)
 		{
 			// Use the default driver
-			$driver = Image::$default_driver;
+			$driver = KIL_Image::$default_driver;
 		}
 
 		// Set the class name
-		$class = 'Image_'.$driver;
+		$class = 'KIL_Image_'.$driver;
 
 		return new $class($file);
 	}
@@ -84,7 +84,7 @@ abstract class Kohana_Image {
 	 *
 	 * @param   string   image file path
 	 * @return  void
-	 * @throws  Kohana_Exception
+	 * @throws  Exception
 	 */
 	public function __construct($file)
 	{
@@ -103,8 +103,7 @@ abstract class Kohana_Image {
 
 		if (empty($file) OR empty($info))
 		{
-			throw new Kohana_Exception('Not an image or invalid image: :file',
-				array(':file' => Debug::path($file)));
+			throw new Exception('Not an image or invalid image: '.$file);
 		}
 
 		// Store the image information
@@ -134,15 +133,6 @@ abstract class Kohana_Image {
 		}
 		catch (Exception $e)
 		{
-			if (is_object(Kohana::$log))
-			{
-				// Get the text of the exception
-				$error = Kohana_Exception::text($e);
-
-				// Add this exception to the log
-				Kohana::$log->add(Log::ERROR, $error);
-			}
-
 			// Showing any kind of error will be "inside" image data
 			return '';
 		}
@@ -156,7 +146,7 @@ abstract class Kohana_Image {
 	 *     $image->resize(200, 200);
 	 *
 	 *     // Resize to 200x200 pixels, keeping aspect ratio
-	 *     $image->resize(200, 200, Image::INVERSE);
+	 *     $image->resize(200, 200, KIL_Image::INVERSE);
 	 *
 	 *     // Resize to 500 pixel width, keeping aspect ratio
 	 *     $image->resize(500, NULL);
@@ -165,33 +155,33 @@ abstract class Kohana_Image {
 	 *     $image->resize(NULL, 500);
 	 *
 	 *     // Resize to 200x500 pixels, ignoring aspect ratio
-	 *     $image->resize(200, 500, Image::NONE);
+	 *     $image->resize(200, 500, KIL_Image::NONE);
 	 *
 	 * @param   integer  new width
 	 * @param   integer  new height
 	 * @param   integer  master dimension
 	 * @return  $this
-	 * @uses    Image::_do_resize
+	 * @uses    KIL_Image::_do_resize
 	 */
 	public function resize($width = NULL, $height = NULL, $master = NULL)
 	{
 		if ($master === NULL)
 		{
 			// Choose the master dimension automatically
-			$master = Image::AUTO;
+			$master = KIL_Image::AUTO;
 		}
-		// Image::WIDTH and Image::HEIGHT deprecated. You can use it in old projects,
+		// KIL_Image::WIDTH and KIL_Image::HEIGHT deprecated. You can use it in old projects,
 		// but in new you must pass empty value for non-master dimension
-		elseif ($master == Image::WIDTH AND ! empty($width))
+		elseif ($master == KIL_Image::WIDTH AND ! empty($width))
 		{
-			$master = Image::AUTO;
+			$master = KIL_Image::AUTO;
 
 			// Set empty height for backward compatibility
 			$height = NULL;
 		}
-		elseif ($master == Image::HEIGHT AND ! empty($height))
+		elseif ($master == KIL_Image::HEIGHT AND ! empty($height))
 		{
-			$master = Image::AUTO;
+			$master = KIL_Image::AUTO;
 
 			// Set empty width for backward compatibility
 			$width = NULL;
@@ -199,7 +189,7 @@ abstract class Kohana_Image {
 
 		if (empty($width))
 		{
-			if ($master === Image::NONE)
+			if ($master === KIL_Image::NONE)
 			{
 				// Use the current width
 				$width = $this->width;
@@ -207,13 +197,13 @@ abstract class Kohana_Image {
 			else
 			{
 				// If width not set, master will be height
-				$master = Image::HEIGHT;
+				$master = KIL_Image::HEIGHT;
 			}
 		}
 
 		if (empty($height))
 		{
-			if ($master === Image::NONE)
+			if ($master === KIL_Image::NONE)
 			{
 				// Use the current height
 				$height = $this->height;
@@ -221,29 +211,29 @@ abstract class Kohana_Image {
 			else
 			{
 				// If height not set, master will be width
-				$master = Image::WIDTH;
+				$master = KIL_Image::WIDTH;
 			}
 		}
 
 		switch ($master)
 		{
-			case Image::AUTO:
+			case KIL_Image::AUTO:
 				// Choose direction with the greatest reduction ratio
-				$master = ($this->width / $width) > ($this->height / $height) ? Image::WIDTH : Image::HEIGHT;
+				$master = ($this->width / $width) > ($this->height / $height) ? KIL_Image::WIDTH : KIL_Image::HEIGHT;
 			break;
-			case Image::INVERSE:
+			case KIL_Image::INVERSE:
 				// Choose direction with the minimum reduction ratio
-				$master = ($this->width / $width) > ($this->height / $height) ? Image::HEIGHT : Image::WIDTH;
+				$master = ($this->width / $width) > ($this->height / $height) ? KIL_Image::HEIGHT : KIL_Image::WIDTH;
 			break;
 		}
 
 		switch ($master)
 		{
-			case Image::WIDTH:
+			case KIL_Image::WIDTH:
 				// Recalculate the height based on the width proportions
 				$height = $this->height * $width / $this->width;
 			break;
-			case Image::HEIGHT:
+			case KIL_Image::HEIGHT:
 				// Recalculate the width based on the height proportions
 				$width = $this->width * $height / $this->height;
 			break;
@@ -273,7 +263,7 @@ abstract class Kohana_Image {
 	 * @param   mixed    offset from the left
 	 * @param   mixed    offset from the top
 	 * @return  $this
-	 * @uses    Image::_do_crop
+	 * @uses    KIL_Image::_do_crop
 	 */
 	public function crop($width, $height, $offset_x = NULL, $offset_y = NULL)
 	{
@@ -353,7 +343,7 @@ abstract class Kohana_Image {
 	 *
 	 * @param   integer   degrees to rotate: -360-360
 	 * @return  $this
-	 * @uses    Image::_do_rotate
+	 * @uses    KIL_Image::_do_rotate
 	 */
 	public function rotate($degrees)
 	{
@@ -394,16 +384,16 @@ abstract class Kohana_Image {
 	 *     // Flip the image from left to right
 	 *     $image->flip(Image::VERTICAL);
 	 *
-	 * @param   integer  direction: Image::HORIZONTAL, Image::VERTICAL
+	 * @param   integer  direction: KIL_Image::HORIZONTAL, KIL_Image::VERTICAL
 	 * @return  $this
-	 * @uses    Image::_do_flip
+	 * @uses    KIL_Image::_do_flip
 	 */
 	public function flip($direction)
 	{
-		if ($direction !== Image::HORIZONTAL)
+		if ($direction !== KIL_Image::HORIZONTAL)
 		{
 			// Flip vertically
-			$direction = Image::VERTICAL;
+			$direction = KIL_Image::VERTICAL;
 		}
 
 		$this->_do_flip($direction);
@@ -419,7 +409,7 @@ abstract class Kohana_Image {
 	 *
 	 * @param   integer  amount to sharpen: 1-100
 	 * @return  $this
-	 * @uses    Image::_do_sharpen
+	 * @uses    KIL_Image::_do_sharpen
 	 */
 	public function sharpen($amount)
 	{
@@ -452,7 +442,7 @@ abstract class Kohana_Image {
 	 * @param   integer   reflection opacity: 0-100
 	 * @param   boolean   TRUE to fade in, FALSE to fade out
 	 * @return  $this
-	 * @uses    Image::_do_reflection
+	 * @uses    KIL_Image::_do_reflection
 	 */
 	public function reflection($height = NULL, $opacity = 100, $fade_in = FALSE)
 	{
@@ -478,7 +468,7 @@ abstract class Kohana_Image {
 	 * If an offset of TRUE is specified, the bottom of the axis will be used.
 	 *
 	 *     // Add a watermark to the bottom right of the image
-	 *     $mark = Image::factory('upload/watermark.png');
+	 *     $mark = KIL_Image::factory('upload/watermark.png');
 	 *     $image->watermark($mark, TRUE, TRUE);
 	 *
 	 * @param   object   watermark Image instance
@@ -486,7 +476,7 @@ abstract class Kohana_Image {
 	 * @param   integer  offset from the top
 	 * @param   integer  opacity of watermark: 1-100
 	 * @return  $this
-	 * @uses    Image::_do_watermark
+	 * @uses    KIL_Image::_do_watermark
 	 */
 	public function watermark(Image $watermark, $offset_x = NULL, $offset_y = NULL, $opacity = 100)
 	{
@@ -543,7 +533,7 @@ abstract class Kohana_Image {
 	 * @param   string   hexadecimal color value
 	 * @param   integer  background opacity: 0-100
 	 * @return  $this
-	 * @uses    Image::_do_background
+	 * @uses    KIL_Image::_do_background
 	 */
 	public function background($color, $opacity = 100)
 	{
@@ -588,8 +578,8 @@ abstract class Kohana_Image {
 	 * @param   string   new image path
 	 * @param   integer  quality of image: 1-100
 	 * @return  boolean
-	 * @uses    Image::_save
-	 * @throws  Kohana_Exception
+	 * @uses    KIL_Image::_save
+	 * @throws  Exception
 	 */
 	public function save($file = NULL, $quality = 100)
 	{
@@ -603,8 +593,7 @@ abstract class Kohana_Image {
 		{
 			if ( ! is_writable($file))
 			{
-				throw new Kohana_Exception('File must be writable: :file',
-					array(':file' => Debug::path($file)));
+				throw new Exception('File must be writable: '.$file);
 			}
 		}
 		else
@@ -614,8 +603,7 @@ abstract class Kohana_Image {
 
 			if ( ! is_dir($directory) OR ! is_writable($directory))
 			{
-				throw new Kohana_Exception('Directory must be writable: :directory',
-					array(':directory' => Debug::path($directory)));
+				throw new Exception('Directory must be writable: '.$directory);
 			}
 		}
 
@@ -637,7 +625,7 @@ abstract class Kohana_Image {
 	 * @param   string   image type to return: png, jpg, gif, etc
 	 * @param   integer  quality of image: 1-100
 	 * @return  string
-	 * @uses    Image::_do_render
+	 * @uses    KIL_Image::_do_render
 	 */
 	public function render($type = NULL, $quality = 100)
 	{
